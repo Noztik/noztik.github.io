@@ -1,0 +1,30 @@
+<html>
+<link href="https://vjs.zencdn.net/8.23.4/video-js.min.css" rel="stylesheet">
+<script src="https://vjs.zencdn.net/8.23.4/video.min.js"></script>
+<video id="vjsplayer" class="video-js vjs-default-skin vjs-big-play-centered" autoplay preload="auto" data-setup='{"techorder" : ["html5"], "errorDisplay": false}'></video>
+<script>
+	const urlParams = new URLSearchParams(window.location.search);
+	var id = urlParams.get("v");
+
+	var player = videojs("vjsplayer");
+
+	var json = new Object();
+	function think(){
+		if (player.error()) document.title = "failure";
+		if (player.readyState() >= 2){
+			if (player.videoWidth() == 0 || player.videoHeight() == 0){
+				document.title = "failure";
+				return;
+			}
+			json.duration = player.duration();
+			if (json.duration == Infinity) json.duration = 0;
+			document.title = JSON.stringify(json);
+		}
+	}
+	setInterval(think, 100);
+
+	player.src({src: id});
+	player.play();
+	player.volume(0);
+</script>
+</html>

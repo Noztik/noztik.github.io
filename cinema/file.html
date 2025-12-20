@@ -1,0 +1,69 @@
+<html>
+<link href="https://vjs.zencdn.net/8.23.4/video-js.min.css" rel="stylesheet">
+<script src="https://vjs.zencdn.net/8.23.4/video.min.js"></script>
+<body style="margin:0px;background-color:black;overflow:hidden;">
+	<video id="vjsplayer" style="width:100%;height:100%;" class="video-js vjs-default-skin vjs-big-play-centered" autoplay preload="auto" data-setup='{"techorder" : ["html5"], "errorDisplay": false}'></video>
+</body>
+<script>
+	const urlParams = new URLSearchParams(window.location.search);
+	var id = urlParams.get("v");
+	var subs = urlParams.get("subs");
+
+	var player = videojs("vjsplayer");
+	var volume = parseFloat(urlParams.get("vol"));
+	var seek = parseFloat(urlParams.get("seek"));
+
+	var time;
+	var current_time = () => (Date.now()/1000 - time);
+	
+	var json = new Object();
+	function think(){
+		if (player.readyState() >= 2){
+			if (player.duration() != Infinity && !player.ended()){
+				if (Math.abs(player.currentTime() - current_time()) > 2){
+					player.currentTime(current_time());
+				}
+			}
+			json.buffered = player.bufferedEnd()/player.duration();
+			document.title = JSON.stringify(json);
+		}
+	}
+	setInterval(think, 100);
+	
+	window.onkeydown = function(e){
+		var code = e.keyCode ? e.keyCode : e.which;
+		
+		if (code >= 240 && code <= 340){ // 0xF0
+			volume = code - 240;
+			player.volume(volume/100);
+		}
+	};
+	
+	window.onwheel = function(e){
+		seek = Math.round(e.wheelDelta * .6)/100; // weird error of 166.66%
+		time -= seek - current_time();
+		json.buffered = 0;
+		document.title = JSON.stringify(json);
+		player.currentTime(current_time());
+	};
+
+
+	player.src({src: id});
+
+	if (subs){
+		player.addRemoteTextTrack({src: subs}, false);
+		if (player.textTracks().length) player.textTracks()[player.textTracks().length-1].mode = "showing";
+
+		// https://docs.videojs.com/tracks_text-track-settings.js
+		player.textTrackSettings.setValues({
+			backgroundOpacity: '0',
+			edgeStyle: 'uniform',
+		});
+		player.textTrackSettings.updateDisplay();
+	}
+
+	player.play();
+	time = Date.now()/1000 - seek;
+	player.volume(volume/100);
+</script>
+</html>

@@ -1,0 +1,85 @@
+<html>
+<title>SoundCloud</title>
+<input style="position:absolute;opacity:0;"></input>
+<link rel="preconnect" href="https://w.soundcloud.com" crossorigin>
+<link rel="preconnect" href="https://api-widget.soundcloud.com" crossorigin>
+<link rel="preconnect" href="https://soundcloud.com" crossorigin>
+<body style="margin:0px;background-color:black;overflow:hidden;">
+	<iframe id="player" width="100%" height="100%" scrolling="no" style="border:0 none;" frameborder="no" src="https://w.soundcloud.com/player/"></iframe>
+</body>
+<script type="text/javascript" src="https://w.soundcloud.com/player/api.js"></script>
+<script type="text/javascript">
+	const urlParams = new URLSearchParams(window.location.search);
+	var url = urlParams.get("v");
+		
+	var widget;
+	var duration;
+	var time;
+	var current_time = () => (Date.now() - time);
+	var player_ready = false;
+	var volume = parseFloat(urlParams.get("vol"));
+	var seek = parseFloat(urlParams.get("seek"))*1000;
+	
+	function think(){
+		if (player_ready){
+			widget.isPaused(function(s){
+				if (s && current_time() < duration) widget.play(); // check current_time to prevent resumes after song finishes
+			});
+		}
+	}
+	setInterval(think, 200);
+
+	const trapInput = document.querySelector("input");
+	setInterval(function(){if(player_ready)trapInput.focus()}, 10); // required to recapture key inputs for onkeydown
+
+	var json = new Object();
+	if (url){
+		var player = document.getElementById("player");
+		player.src = "https://w.soundcloud.com/player/?auto_play=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&sharing=false&liking=false&download=false&visual=true&show_artwork=true&url=" + url;
+		widget = SC.Widget(player);
+		player.focus();
+		widget.play();
+		
+		widget.bind(SC.Widget.Events.READY, function(e){
+			widget.setVolume(volume);
+			widget.getDuration(function(s){
+				duration = s;
+			});
+			time = Date.now() - seek;
+			widget.seekTo(time);
+		});
+		
+		widget.bind(SC.Widget.Events.PLAY_PROGRESS, function(e){
+			player_ready = true;
+
+			json.buffered = e.loadedProgress;
+			document.title = JSON.stringify(json);
+
+			widget.getVolume(function(s){
+				widget.setVolume(volume);
+			});
+
+			widget.getPosition(function(s){
+				if (s > 0 && Math.abs(s - current_time()) > 2000){
+					widget.seekTo(current_time());
+				}
+			});
+		});
+	};
+
+	window.onkeydown = function(e){
+		var code = e.keyCode ? e.keyCode : e.which;
+		
+		if (code >= 240 && code <= 340){ // 0xF0
+			volume = code - 240;
+		}
+	};
+		
+	window.onwheel = function(e){
+		seek = Math.round(e.wheelDelta * .6)*10; // weird error of 166.66%
+		json.buffered = 0;
+		document.title = JSON.stringify(json);
+		time -= seek - current_time();
+	};
+</script>
+</html>

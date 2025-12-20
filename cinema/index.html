@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cinema</title>
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			background: radial-gradient(#242F3A 0%,#161616 100%);
+			color: white;
+			font-family: 'Oswald', sans-serif;
+		}
+
+		#content-container {
+			width: 100%;
+			height: 100%;
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-box-align: center;
+			-webkit-box-pack: center;
+			overflow: auto;
+		}
+
+		.service {
+			display: inline-block;
+			width: 120px;
+			height: 120px;
+			margin: 15px;
+		
+			background-color: #EEE;
+			background-repeat: no-repeat;
+			background-position: center center;
+			border-radius: 8pt;
+
+			color: transparent;
+		}
+
+		.service:hover {
+			box-shadow: 0px 10px 33px rgba(0,0,0,0.66);
+			cursor: pointer;
+		}
+
+
+		#maincontainer{
+			position: absolute;
+			width: 100%;
+			top: 57.5%;
+			left: 50%;
+			transform: translate(-50%,-50%);
+		}
+
+		#searchcontainer{
+			height: 40px;
+			width: 600px;
+			background-color: #EEE;
+			border-radius: 4px;
+			display: flex;
+			flex-direction: row;
+		}
+
+		#search{
+			margin: 5px 0px 5px 5px;
+			flex-grow: 1;
+		}
+
+		#searchbutton{
+			width: 40px;
+			border-radius: 4px;
+			margin: 6px 5px 5px 5px;
+			border: transparent;
+			background: transparent;
+			background-image: url(logos/youtube-thumb.png);
+			background-repeat: no-repeat;
+			background-size: contain;
+			cursor: pointer;
+		}
+</style>
+</head>
+<body>
+	<div id="maincontainer">
+		<section id="content-container">
+			<div id="searchcontainer">
+				<input id="search" type="text" placeholder="Search YouTube" autocomplete="off" spellcheck="false">
+				<button id="searchbutton" onclick="search()">
+			</div>
+			<a class="service" style="background-image:url(logos/youtube.png);" href="https://www.youtube.com"></a>
+			<a class="service" style="background-image:url(logos/soundcloud.svg);" href="https://soundcloud.com/"></a>
+			<a class="service" style="background-image:url(logos/twitch.png);" href="https://www.twitch.tv"></a>
+			<a class="service" style="background-image:url(logos/kick.svg);" href="https://kick.com"></a>
+			<a class="service" style="background-image:url(logos/rumble.png);background-size: 90%;" href="https://rumble.com"></a>
+		</section>
+	</div>
+</body>
+<script>
+	const s = document.getElementById("search");
+
+	s.addEventListener("keydown", function(e){
+		if (e.keyCode == 13) search();
+	});
+
+	function search(){
+		window.location.href = "https://www.youtube.com/results?search_query=" + encodeURIComponent(s.value);
+	}
+</script>
+</html>

@@ -1,0 +1,89 @@
+<html>
+<link rel="preconnect" href="https://www.youtube.com" crossorigin>
+<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+<body style="margin:0px;background-color:black;overflow:hidden;">
+	<div id="player" style="position:absolute;top:-150%;pointer-events:none;"></div>
+</body>
+<script src="https://www.youtube.com/iframe_api" defer></script>
+<script>
+	const urlParams = new URLSearchParams(window.location.search);
+	var id = urlParams.get("v");
+
+	var player;
+	var volume = parseFloat(urlParams.get("vol"));
+	var seek = parseFloat(urlParams.get("seek"));
+
+	function onYouTubeIframeAPIReady(){
+		player = new YT.Player("player",{
+			height: "400%",
+			width: "100%",
+			videoId: id,
+			host: "https://www.youtube-nocookie.com",
+			events: {
+				"onReady": onPlayerReady
+			},
+			playerVars: {
+				autoplay: 1,
+				mute: 1, // autoplay is allowed while muted
+				controls: 0,
+				cc_load_policy: 0,
+				disablekb: 1,
+				showinfo: 0,
+				modestbranding: 1,
+				rel: 0,
+				iv_load_policy: 3,
+				hl: urlParams.get("hl") // match country code to video to bypass autodub
+			}
+		});
+	}
+
+	var json = new Object();
+	function onPlayerReady(event){
+		player.playVideo();
+		player.setVolume(volume);
+		player.seekTo(seek);
+		function think(){
+			if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1){
+				player.playVideo();
+			}
+			if (player.getPlayerState() == 1){
+				var videoAspectRatio = (player.playerInfo.videoContentRect.width/player.playerInfo.videoContentRect.height);
+				var windowAspectRatio = (outerWidth/outerHeight);
+				
+				// the fruit of my obsession with creating a seamless viewing experience
+				// set the youtube embed iframe height so high that the top and bottom aren't visible then adjust the video to fit in the center
+				if (videoAspectRatio <= windowAspectRatio){
+					var s = (videoAspectRatio * 100) / windowAspectRatio;
+				}
+				else if (videoAspectRatio > windowAspectRatio){
+					if (videoAspectRatio > 1) videoAspectRatio = 1;
+					var s = videoAspectRatio * 100;
+				}
+				player.g.style.width = s + "%";
+				if (s < 100) player.g.style.left = (100 - s)/2 + "%";
+
+				json.buffered = player.getVideoLoadedFraction();
+				document.title = JSON.stringify(json);
+			}
+		}
+		setInterval(think, 50);
+	}
+
+	window.onkeydown = function(e){
+		var code = e.keyCode ? e.keyCode : e.which;
+		if (volume > 0) player.unMute();
+
+		if (code >= 240 && code <= 340){ // 0xF0
+			volume = code - 240;
+			player.setVolume(volume);
+		}
+	};
+
+	window.onwheel = function(e){
+		seek = Math.round(e.wheelDelta * .6)/100; // weird error of 166.66%
+		json.buffered = 0;
+		document.title = JSON.stringify(json);
+		player.seekTo(seek);
+	};
+</script>
+</html>

@@ -1,0 +1,45 @@
+<html>
+<script type="text/javascript">
+	const urlParams = new URLSearchParams(window.location.search);
+	var channel = urlParams.get("channel");
+	var video = urlParams.get("video");
+
+	var json = new Object();
+	var xhr = new XMLHttpRequest();
+	if (channel){
+		xhr.open("GET", `https://kick.com/api/v2/channels/${channel}/info`);
+		xhr.onload = () => {
+			if (xhr.status != 200){
+				document.title = "failure";
+				return;
+			}
+			var js = JSON.parse(xhr.responseText);
+			if (!js.livestream){
+				document.title = "failure";
+				return;
+			}
+			json.duration = 0;
+			json.title = encodeURIComponent(js.livestream.session_title.replace("\n", " "));
+			json.thumbnail = js.livestream.thumbnail.responsive.split(",")[0].split(" ")[0];
+			json.url = js.playback_url;
+			document.title = JSON.stringify(json);
+		};
+	}
+	if (video){
+		xhr.open("GET", `https://kick.com/api/v1/video/${video}`);
+		xhr.onload = () => {
+			if (xhr.status != 200){
+				document.title = "failure";
+				return;
+			}
+			var js = JSON.parse(xhr.responseText);
+			json.duration = js.livestream.duration/1000;
+			json.title = encodeURIComponent(js.livestream.session_title.replace("\n", " "));
+			json.thumbnail = js.livestream.thumbnail;
+			json.url = js.source;
+			document.title = JSON.stringify(json);
+		};
+	}
+	xhr.send();
+</script>
+</html>
