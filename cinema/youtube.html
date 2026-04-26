@@ -56,7 +56,7 @@
             }
             old_params = window.location.hash;
 
-			if (player.getPlayerState() == -1 && player.getCurrentTime() > 0) location.reload(); // if an ad plays then refresh
+			if (player.getPlayerState() == -1 && (((seek == 0 || isNaN(seek)) && player.getCurrentTime() > 0) || (seek > 0 && player.getCurrentTime() < seek))) location.reload(); // if an ad plays then refresh
 			else if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1){
 				player.playVideo();
 			}
