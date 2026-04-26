@@ -5,7 +5,8 @@
 	<video id="vjsplayer" style="width:100%;height:100%;" class="video-js vjs-default-skin vjs-big-play-centered" autoplay preload="auto" data-setup='{"techorder" : ["html5"], "errorDisplay": false}'></video>
 </body>
 <script>
-	const urlParams = new URLSearchParams(window.location.search);
+	var urlParams = new URLSearchParams(window.location.hash.slice(1));
+	var old_params = window.location.hash;
 	var id = urlParams.get("v");
 	var subs = urlParams.get("subs");
 
@@ -15,10 +16,44 @@
 
 	var time;
 	var current_time = () => (Date.now()/1000 - time);
-	
+
+	function setup(){
+		document.title = null;
+		player.src({src: id});
+		if (subs){
+			// tracks immediately get reset for some reason
+			setTimeout(function(){
+				player.addRemoteTextTrack({src: subs}, false);
+				if (player.textTracks().length) player.textTracks()[player.textTracks().length-1].mode = "showing";
+			}, 10);
+		}
+		time = Date.now()/1000 - seek;
+	}
+	setup();
+
+	// https://docs.videojs.com/tracks_text-track-settings.js
+	player.textTrackSettings.setValues({
+		backgroundOpacity: '0',
+		edgeStyle: 'uniform',
+	});
+	player.textTrackSettings.updateDisplay();
+
 	var json = new Object();
 	function think(){
+		if (window.location.hash != old_params){
+		    urlParams = new URLSearchParams(window.location.hash.slice(1));
+		    id = urlParams.get("v");
+			subs = urlParams.get("subs");
+			volume = parseFloat(urlParams.get("vol"));
+			seek = parseFloat(urlParams.get("seek"));
+
+			player.reset();
+			setup();
+		}
+		old_params = window.location.hash;
+
 		if (player.readyState() >= 2){
+			player.volume(volume/100);
 			if (player.duration() != Infinity && !player.ended()){
 				if (Math.abs(player.currentTime() - current_time()) > 2){
 					player.currentTime(current_time());
@@ -28,8 +63,8 @@
 			document.title = JSON.stringify(json);
 		}
 	}
-	setInterval(think, 100);
-	
+	setInterval(think, 50);
+
 	window.onkeydown = function(e){
 		var code = e.keyCode ? e.keyCode : e.which;
 		
@@ -38,7 +73,7 @@
 			player.volume(volume/100);
 		}
 	};
-	
+
 	window.onwheel = function(e){
 		seek = Math.round(e.wheelDelta * .6)/100; // weird error of 166.66%
 		time -= seek - current_time();
@@ -46,24 +81,5 @@
 		document.title = JSON.stringify(json);
 		player.currentTime(current_time());
 	};
-
-
-	player.src({src: id});
-
-	if (subs){
-		player.addRemoteTextTrack({src: subs}, false);
-		if (player.textTracks().length) player.textTracks()[player.textTracks().length-1].mode = "showing";
-
-		// https://docs.videojs.com/tracks_text-track-settings.js
-		player.textTrackSettings.setValues({
-			backgroundOpacity: '0',
-			edgeStyle: 'uniform',
-		});
-		player.textTrackSettings.updateDisplay();
-	}
-
-	player.play();
-	time = Date.now()/1000 - seek;
-	player.volume(volume/100);
 </script>
 </html>

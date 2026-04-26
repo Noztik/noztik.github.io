@@ -9,33 +9,44 @@
 </body>
 <script type="text/javascript" src="https://w.soundcloud.com/player/api.js"></script>
 <script type="text/javascript">
-	const urlParams = new URLSearchParams(window.location.search);
+	var urlParams = new URLSearchParams(window.location.hash.slice(1));
 	var url = urlParams.get("v");
-		
+	var old_url = url;
+
 	var widget;
 	var duration;
 	var time;
+	var player = document.getElementById("player");
 	var current_time = () => (Date.now() - time);
 	var player_ready = false;
 	var volume = parseFloat(urlParams.get("vol"));
 	var seek = parseFloat(urlParams.get("seek"))*1000;
-	
+	const base_url = "https://w.soundcloud.com/player/?auto_play=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&sharing=false&liking=false&download=false&visual=true&show_artwork=true&url=";
+
 	function think(){
 		if (player_ready){
+			urlParams = new URLSearchParams(window.location.hash.slice(1));
+			url = urlParams.get("v");
+			if (url != old_url){
+				volume = parseFloat(urlParams.get("vol"));
+				seek = parseFloat(urlParams.get("seek"))*1000;
+				player.src = base_url + url;
+			}
+			old_url = url;
+
 			widget.isPaused(function(s){
 				if (s && current_time() < duration) widget.play(); // check current_time to prevent resumes after song finishes
 			});
 		}
 	}
-	setInterval(think, 200);
+	setInterval(think, 50);
 
 	const trapInput = document.querySelector("input");
 	setInterval(function(){if(player_ready)trapInput.focus()}, 10); // required to recapture key inputs for onkeydown
 
 	var json = new Object();
 	if (url){
-		var player = document.getElementById("player");
-		player.src = "https://w.soundcloud.com/player/?auto_play=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&sharing=false&liking=false&download=false&visual=true&show_artwork=true&url=" + url;
+		player.src = base_url + url;
 		widget = SC.Widget(player);
 		player.focus();
 		widget.play();
@@ -74,7 +85,7 @@
 			volume = code - 240;
 		}
 	};
-		
+
 	window.onwheel = function(e){
 		seek = Math.round(e.wheelDelta * .6)*10; // weird error of 166.66%
 		json.buffered = 0;

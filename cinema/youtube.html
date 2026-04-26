@@ -6,10 +6,11 @@
 </body>
 <script src="https://www.youtube.com/iframe_api" defer></script>
 <script>
-	const urlParams = new URLSearchParams(window.location.search);
+	var urlParams = new URLSearchParams(window.location.hash.slice(1));
+    var old_params = window.location.hash;
 	var id = urlParams.get("v");
 
-	var player;
+    var player;
 	var volume = parseFloat(urlParams.get("vol"));
 	var seek = parseFloat(urlParams.get("seek"));
 
@@ -32,7 +33,7 @@
 				modestbranding: 1,
 				rel: 0,
 				iv_load_policy: 3,
-				hl: urlParams.get("hl") // match country code to video to bypass autodub
+				//hl: urlParams.get("hl") // match country code to video to bypass autodub
 			}
 		});
 	}
@@ -43,14 +44,25 @@
 		player.setVolume(volume);
 		player.seekTo(seek);
 		function think(){
+            if (window.location.hash != old_params){
+                urlParams = new URLSearchParams(window.location.hash.slice(1));
+                id = urlParams.get("v");
+				volume = parseFloat(urlParams.get("vol"));
+				seek = parseFloat(urlParams.get("seek"));
+				player.loadVideoById(id);
+                player.setVolume(volume);
+                player.seekTo(seek);
+				document.title = null;
+            }
+            old_params = window.location.hash;
+
 			if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1){
 				player.playVideo();
 			}
 			if (player.getPlayerState() == 1){
 				var videoAspectRatio = (player.playerInfo.videoContentRect.width/player.playerInfo.videoContentRect.height);
 				var windowAspectRatio = (outerWidth/outerHeight);
-				
-				// the fruit of my obsession with creating a seamless viewing experience
+
 				// set the youtube embed iframe height so high that the top and bottom aren't visible then adjust the video to fit in the center
 				if (videoAspectRatio <= windowAspectRatio){
 					var s = (videoAspectRatio * 100) / windowAspectRatio;
@@ -61,6 +73,7 @@
 				}
 				player.g.style.width = s + "%";
 				if (s < 100) player.g.style.left = (100 - s)/2 + "%";
+				else player.g.style.left = "0%";
 
 				json.buffered = player.getVideoLoadedFraction();
 				document.title = JSON.stringify(json);
