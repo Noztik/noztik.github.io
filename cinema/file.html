@@ -52,7 +52,7 @@
 		}
 		old_params = window.location.hash;
 
-		if (player.readyState() >= 2){
+		if (player.readyState() >= 1){
 			player.volume(volume/100);
 			if (player.duration() != Infinity && !player.ended()){
 				if (Math.abs(player.currentTime() - current_time()) > 2){
