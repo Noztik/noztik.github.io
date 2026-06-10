@@ -25,6 +25,12 @@
 			overflow: auto;
 		}
 
+		#services {
+			display: grid;
+			grid-template-columns: repeat(6, auto);
+			justify-content: center;
+		}
+
 		.service {
 			display: inline-block;
 			width: 120px;
@@ -43,7 +49,6 @@
 			box-shadow: 0px 10px 33px rgba(0,0,0,0.66);
 			cursor: pointer;
 		}
-
 
 		#maincontainer{
 			position: absolute;
@@ -87,11 +92,15 @@
 				<input id="search" type="text" placeholder="Search YouTube" autocomplete="off" spellcheck="false">
 				<button id="searchbutton" onclick="search()">
 			</div>
-			<a class="service" style="background-image:url(logos/youtube.png);" href="https://www.youtube.com"></a>
-			<a class="service" style="background-image:url(logos/soundcloud.svg);" href="https://soundcloud.com/"></a>
-			<a class="service" style="background-image:url(logos/twitch.png);" href="https://www.twitch.tv"></a>
-			<!--a class="service" style="background-image:url(logos/kick.svg);" href="https://kick.com"></a-->
-			<!--a class="service" style="background-image:url(logos/rumble.png);background-size: 90%;" href="https://rumble.com"></a-->
+			<div id="services">
+				<a class="service" style="background-image:url(logos/youtube.png); grid-column: 1 / span 2;" href="https://www.youtube.com"></a>
+				<a class="service" style="background-image:url(logos/soundcloud.svg); grid-column: 3 / span 2;" href="https://soundcloud.com/"></a>
+				<a class="service" style="background-image:url(logos/twitch.png); grid-column: 5 / span 2;" href="https://www.twitch.tv"></a>
+				<a class="service" style="background: url(logos/archive.png) center/96px 96px no-repeat; background-color: #EEE; grid-column: 2 / span 2;" href="https://archive.org/details/movies"></a>
+				<a class="service" style="background: url(logos/bitchute.svg) center/112px 112px no-repeat; background-color: #EEE; grid-column: 4 / span 2;" href="https://www.bitchute.com"></a>
+				<!--a class="service" style="background-image:url(logos/kick.svg);" href="https://kick.com"></a-->
+				<!--a class="service" style="background-image:url(logos/rumble.png);background-size: 90%;" href="https://rumble.com"></a-->
+			</div>
 		</section>
 	</div>
 </body>
