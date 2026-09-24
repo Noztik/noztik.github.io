@@ -1,21 +1,22 @@
 <html>
 <link rel="preconnect" href="https://www.youtube.com" crossorigin>
 <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+
 <body style="margin:0px;background-color:black;overflow:hidden;">
 	<div id="player" style="position:absolute;top:-150%;pointer-events:none;"></div>
 </body>
 <script src="https://www.youtube.com/iframe_api" defer></script>
 <script>
 	var urlParams = new URLSearchParams(window.location.hash.slice(1));
-    var old_params = window.location.hash;
+	var old_params = window.location.hash;
 	var id = urlParams.get("v");
 
-    var player;
+	var player;
 	var volume = parseFloat(urlParams.get("vol"));
 	var seek = parseFloat(urlParams.get("seek"));
 
-	function onYouTubeIframeAPIReady(){
-		player = new YT.Player("player",{
+	function onYouTubeIframeAPIReady() {
+		player = new YT.Player("player", {
 			height: "400%",
 			width: "100%",
 			videoId: id,
@@ -39,42 +40,47 @@
 	}
 
 	var json = new Object();
-	function onPlayerReady(event){
+
+	function onPlayerReady(event) {
 		player.playVideo();
 		player.setVolume(volume);
 		player.seekTo(seek);
-		function think(){
-            if (window.location.hash != old_params){
-                urlParams = new URLSearchParams(window.location.hash.slice(1));
-                id = urlParams.get("v");
+		let playeriFrame;
+		for (const i of Object.keys(player)) {
+			if (player[i]?.localName == "iframe") playeriFrame = player[i];
+		}
+
+		function think() {
+			if (window.location.hash != old_params) {
+				urlParams = new URLSearchParams(window.location.hash.slice(1));
+				id = urlParams.get("v");
 				volume = parseFloat(urlParams.get("vol"));
 				seek = parseFloat(urlParams.get("seek"));
 				player.loadVideoById(id);
-                player.setVolume(volume);
-                player.seekTo(seek);
+				player.setVolume(volume);
+				player.seekTo(seek);
 				document.title = null;
-            }
-            old_params = window.location.hash;
+			}
+			old_params = window.location.hash;
 
 			if (player.getPlayerState() == -1 && (((seek == 0 || isNaN(seek)) && player.getCurrentTime() > 0) || (seek > 0 && player.getCurrentTime() < seek))) location.reload(); // if an ad plays then refresh
-			else if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1){
+			else if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1) {
 				player.playVideo();
 			}
-			if (player.getPlayerState() == 1){
-				var videoAspectRatio = (player.playerInfo.videoContentRect.width/player.playerInfo.videoContentRect.height);
-				var windowAspectRatio = (outerWidth/outerHeight);
+			if (player.getPlayerState() == 1) {
+				var videoAspectRatio = (player.playerInfo.videoContentRect.width / player.playerInfo.videoContentRect.height);
+				var windowAspectRatio = (outerWidth / outerHeight);
 
 				// set the youtube embed iframe height so high that the top and bottom aren't visible then adjust the video to fit in the center
-				if (videoAspectRatio <= windowAspectRatio){
+				if (videoAspectRatio <= windowAspectRatio) {
 					var s = (videoAspectRatio * 100) / windowAspectRatio;
-				}
-				else if (videoAspectRatio > windowAspectRatio){
+				} else if (videoAspectRatio > windowAspectRatio) {
 					if (videoAspectRatio > 1) videoAspectRatio = 1;
 					var s = videoAspectRatio * 100;
 				}
-				player.g.style.width = s + "%";
-				if (s < 100) player.g.style.left = (100 - s)/2 + "%";
-				else player.g.style.left = "0%";
+				playeriFrame.style.width = s + "%";
+				if (s < 100) playeriFrame.style.left = (100 - s) / 2 + "%";
+				else playeriFrame.style.left = "0%";
 
 				json.buffered = player.getVideoLoadedFraction();
 				document.title = JSON.stringify(json);
@@ -83,21 +89,22 @@
 		setInterval(think, 50);
 	}
 
-	window.onkeydown = function(e){
+	window.onkeydown = function(e) {
 		var code = e.keyCode ? e.keyCode : e.which;
 		if (volume > 0) player.unMute();
 
-		if (code >= 240 && code <= 340){ // 0xF0
+		if (code >= 240 && code <= 340) { // 0xF0
 			volume = code - 240;
 			player.setVolume(volume);
 		}
 	};
 
-	window.onwheel = function(e){
-		seek = Math.round(e.wheelDelta * .6)/100; // weird error of 166.66%
+	window.onwheel = function(e) {
+		seek = Math.round(e.wheelDelta * .6) / 100; // weird error of 166.66%
 		json.buffered = 0;
 		document.title = JSON.stringify(json);
 		player.seekTo(seek);
 	};
 </script>
+
 </html>
