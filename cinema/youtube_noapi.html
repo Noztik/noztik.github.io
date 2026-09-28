@@ -1,0 +1,114 @@
+<html>
+<link rel="preconnect" href="https://www.youtube.com" crossorigin>
+<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+<body style="margin:0px;background-color:black;overflow:hidden;">
+	<iframe id="player" style="position: absolute; top: -150%; pointer-events: none;" frameborder="0" allowfullscreen="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" width="100%" height="400%" src="https://www.youtube-nocookie.com/embed/?autoplay=1&mute=1&controls=0&cc_load_policy=0&disablekb=1&showinfo=0&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1&widgetid=1&vf=1"></iframe>
+</body>
+<script>
+	const win = document.querySelector("iframe");
+	const winInner = win.contentWindow;
+	var urlParams = new URLSearchParams(window.location.hash.slice(1));
+	var oldParams = window.location.hash;
+
+	var id = urlParams.get("v");
+	var volume = parseFloat(urlParams.get("vol"));
+	var seek = parseFloat(urlParams.get("seek"));
+
+	var json = Object();
+
+	window.addEventListener("message", function(event) {
+		if (oldParams != window.location.hash) {
+			urlParams = new URLSearchParams(window.location.hash.slice(1));
+
+			if (id != urlParams.get("v")) {
+				id = urlParams.get("v");
+				sendCommand("loadVideoById", [id]);
+			}
+			if (seek != urlParams.get("seek")) {
+				seek = urlParams.get("seek");
+				sendCommand("seekTo", [volume]);
+			}
+			if (volume != urlParams.get("vol")) {
+				volume = urlParams.get("vol");
+				sendCommand("setVolume", [volume]);
+			}
+			document.title = null;
+		}
+		oldParams = window.location.hash;
+
+		const message = JSON.parse(event.data);
+
+		switch (message.event) {
+			case "readyToListen":
+				winInner.postMessage(`{"event":"listening","id":1,"channel":"widget"}`, '*');
+				break;
+
+			case "onReady":
+				sendCommand("loadVideoById", [id]);
+				sendCommand("setVolume", [volume]);
+				if (volume > 0) sendCommand("unMute", []);
+				break;
+
+			case "infoDelivery":
+				if (message.info.playerState != 1) {
+					sendCommand("playVideo", []);
+				}
+
+				if (message.info.currentTime < message.info.duration) {
+					if (message.info.currentTime < seek) {
+						sendCommand("seekTo", [seek]);
+					}
+				}
+
+				if (message.info.videoContentRect) {
+					var videoAspectRatio = (message.info.videoContentRect.width / message.info.videoContentRect.height);
+					var windowAspectRatio = (outerWidth / outerHeight);
+
+					// set the youtube embed iframe height so high that the top and bottom aren't visible then adjust the video to fit in the center
+					if (videoAspectRatio <= windowAspectRatio) {
+						var s = (videoAspectRatio * 100) / windowAspectRatio;
+					} else if (videoAspectRatio > windowAspectRatio) {
+						if (videoAspectRatio > 1) videoAspectRatio = 1;
+						var s = videoAspectRatio * 100;
+					}
+					win.style.width = s + "%";
+					if (s < 100) win.style.left = (100 - s) / 2 + "%";
+					else win.style.left = "0%";
+				}
+
+				if (message.info.videoLoadedFraction) {
+					json.buffered = message.info.videoLoadedFraction;
+					document.title = JSON.stringify(json);
+				}
+
+				break;
+		}
+	});
+
+	function sendCommand(cmd, args) {
+		winInner.postMessage(JSON.stringify({
+			"event": "command",
+			"func": cmd,
+			"args": args,
+			"id": 1
+		}), '*');
+	}
+
+	window.onkeydown = function(e) {
+		var code = e.keyCode ? e.keyCode : e.which;
+		if (volume > 0) sendCommand("unMute", []);
+
+		if (code >= 240 && code <= 340) { // 0xF0
+			volume = code - 240;
+			sendCommand("setVolume", [volume]);
+		}
+	};
+
+	window.onwheel = function(e) {
+		seek = Math.round(e.wheelDelta * .6) / 100; // weird error of 166.66%
+		json.buffered = 0;
+		document.title = JSON.stringify(json);
+		sendCommand("seekTo", [seek]);
+	};
+</script>
+</html>
