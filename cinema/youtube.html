@@ -1,7 +1,6 @@
 <html>
 <link rel="preconnect" href="https://www.youtube.com" crossorigin>
 <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
-
 <body style="margin:0px;background-color:black;overflow:hidden;">
 	<div id="player" style="position:absolute;top:-150%;pointer-events:none;"></div>
 </body>
@@ -63,7 +62,7 @@
 			}
 			old_params = window.location.hash;
 
-			if (player.getPlayerState() == -1 && (((seek == 0 || isNaN(seek)) && player.getCurrentTime() > 0) || (seek > 0 && player.getCurrentTime() < seek))) location.reload(); // if an ad plays then refresh
+			if (!player.playerInfo.progressState?.allowSeeking) player.stopVideo(); // stopping the video skips the ad for some reason
 			else if (player.getPlayerState() == 2 || player.getPlayerState() == 5 || player.getPlayerState() == -1) {
 				player.playVideo();
 			}
@@ -106,5 +105,4 @@
 		player.seekTo(seek);
 	};
 </script>
-
 </html>

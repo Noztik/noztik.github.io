@@ -54,6 +54,10 @@
 					sendCommand("playVideo", []);
 				}
 
+				if (!message.info.progressState.allowSeeking) {
+					sendCommand("stopVideo", []);
+				}
+
 				if (message.info.currentTime < message.info.duration) {
 					if (message.info.currentTime < seek) {
 						sendCommand("seekTo", [seek]);
