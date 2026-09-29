@@ -25,11 +25,11 @@
 				sendCommand("loadVideoById", [id]);
 			}
 			if (seek != urlParams.get("seek")) {
-				seek = urlParams.get("seek");
-				sendCommand("seekTo", [volume]);
+				seek = parseFloat(urlParams.get("seek"));
+				sendCommand("seekTo", [seek]);
 			}
 			if (volume != urlParams.get("vol")) {
-				volume = urlParams.get("vol");
+				volume = parseFloat(urlParams.get("vol"));
 				sendCommand("setVolume", [volume]);
 			}
 			document.title = null;
@@ -54,7 +54,7 @@
 					sendCommand("playVideo", []);
 				}
 
-				if (!message.info.progressState.allowSeeking) {
+				if (player.playerInfo?.progressState?.allowSeeking === false) {
 					sendCommand("stopVideo", []);
 				}
 
